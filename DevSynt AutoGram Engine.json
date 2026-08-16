@@ -1,0 +1,664 @@
+{
+  "name": "DevSynt AutoGram Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "09764385-1d09-4302-abda-838ff1dd4c76",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -768,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.mimeType }}",
+              "rightValue": "image/",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              },
+              "id": "7b723d2b-a024-4b60-a46b-a284d0a1b204"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "693f09fa-194a-40d6-a782-67d99810402b",
+      "name": "Filter Images",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": "={{ $json.id }}",
+        "options": {}
+      },
+      "id": "b5ec5365-5b3c-4eaf-92b1-8e2832c6ba66",
+      "name": "Google Drive - Download",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "nmZMlulPZnr3jZW3",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const i=$input.first(); if(!i.binary?.data) throw new Error('No image binary found'); return [{json:{fileId:i.json.id,fileName:i.json.name,mimeType:i.json.mimeType},binary:{data:i.binary.data}}];"
+      },
+      "id": "cf50c3d2-3891-4718-838e-d5d7862facdb",
+      "name": "Prepare Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://eoanxnehfeezohhnkmqj.supabase.co/rest/v1/post_logs?select=id&file_id=eq.{{$json.fileId}}&limit=1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvYW54bmVoZmVlem9oaG5rbXFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjcwNTk3OSwiZXhwIjoyMTAyMjgxOTc5fQ.5Sg7sXgzRudor9eidrj6lM1JQia9xrLeYSz76TgSZwY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvYW54bmVoZmVlem9oaG5rbXFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjcwNTk3OSwiZXhwIjoyMTAyMjgxOTc5fQ.5Sg7sXgzRudor9eidrj6lM1JQia9xrLeYSz76TgSZwY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9d709615-8800-4c23-95c5-7005f08a2281",
+      "name": "Supabase - Check Duplicate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Array.isArray($json) ? $json.length : 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "id": "b89b4e2e-5490-4feb-abed-b6fc3272194e"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1ffde4af-6e73-40d0-ace5-23d115c3f83e",
+      "name": "New Image?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://eoanxnehfeezohhnkmqj.supabase.co/storage/v1/object/instagram-images/' + encodeURIComponent($('Prepare Image').first().json.fileId + '-' + $('Prepare Image').first().json.fileName) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvYW54bmVoZmVlem9oaG5rbXFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjcwNTk3OSwiZXhwIjoyMTAyMjgxOTc5fQ.5Sg7sXgzRudor9eidrj6lM1JQia9xrLeYSz76TgSZwY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvYW54bmVoZmVlem9oaG5rbXFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjcwNTk3OSwiZXhwIjoyMTAyMjgxOTc5fQ.5Sg7sXgzRudor9eidrj6lM1JQia9xrLeYSz76TgSZwY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "={{ $node['Prepare Image'].json.mimeType }}"
+            },
+            {
+              "name": "x-upsert",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "03bb5ddd-9b74-43f5-ba47-96fc14251c2c",
+      "name": "Supabase Storage - Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        912,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Prepare Image').first().json;\n\nreturn [{\n  json: {\n    ...p,\n    publicUrl: 'https://eoanxnehfeezohhnkmqj.supabase.co/storage/v1/object/public/instagram-images/' + encodeURIComponent(p.fileId + '-' + p.fileName)\n  }\n}];"
+      },
+      "id": "d730c858-9f99-423c-89de-b21ab9435dc8",
+      "name": "Build Public Image URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "=AQ.Ab8RN6LRMzRqw_yYnocQswY7kK8D7Gj5kvjKySguzVAzCLl37w"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Generate an Instagram caption for the image. You MUST return ONLY valid JSON. Do not include markdown, explanations, or any other text. Use exactly this format: {\\\"caption\\\":\\\"your caption here\\\",\\\"hashtags\\\":[\\\"#hashtag1\\\",\\\"#hashtag2\\\",\\\"#hashtag3\\\"]}\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"responseMimeType\": \"application/json\"\n  }\n}",
+        "options": {}
+      },
+      "id": "e7684dd5-9be5-4f10-958d-44b572c493f4",
+      "name": "AI - Generate Caption",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$json?.candidates?.[0]?.content?.parts?.[0]?.text||''; const s=raw.replace(/^```json\\s*/i,'').replace(/```$/i,'').trim(); let x; try{x=JSON.parse(s)}catch(e){throw new Error('AI returned invalid JSON')} if(!x.caption||!Array.isArray(x.hashtags)) throw new Error('Missing caption or hashtags'); const h=x.hashtags.map(v=>String(v).startsWith('#')?String(v):'#'+String(v).replace(/\\s+/g,'')); return [{json:{...$node['Build Public Image URL'].json,caption:x.caption,hashtags:h,fullCaption:x.caption+'\\n\\n'+h.join(' ')}}];"
+      },
+      "id": "66a1bedb-abb4-4197-9ab9-616946a7949a",
+      "name": "Validate AI Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/17841439677301225/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.publicUrl }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.fullCaption }}"
+            },
+            {
+              "name": "access_token",
+              "value": "=IGAAWkEv1JwHNBZAGJObGJvNk1XaDhSYjVaNkVjN3FPRDljMjU1aVQ4ZATZAlR3R6MXAycktpOEZAYcW15YkZAvRU9Qd1lfM01aT0tvb3JCdzR6blk4ZAzJwcl9pdnh2aTV6eVRRUHkyLXVsRXhfbmgwYndjSnNkdFZAxR20tTm1EMGpwawZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8602b912-cd1b-40f1-a15d-b0b2c3eb46bf",
+      "name": "Instagram - Create Media Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "id": "a89e0200-2241-4419-ade7-1027ba3bd65c",
+      "name": "Wait for Processing",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1984,
+        0
+      ],
+      "webhookId": "d6ce3cc4-bb2f-48a2-8171-2d7e8758c13c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/17841439677301225/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $node['Instagram - Create Media Container'].json.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "=IGAAWkEv1JwHNBZAGJObGJvNk1XaDhSYjVaNkVjN3FPRDljMjU1aVQ4ZATZAlR3R6MXAycktpOEZAYcW15YkZAvRU9Qd1lfM01aT0tvb3JCdzR6blk4ZAzJwcl9pdnh2aTV6eVRRUHkyLXVsRXhfbmgwYndjSnNkdFZAxR20tTm1EMGpwawZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a160cfa4-2e62-4a92-aa62-c9fcc21d2001",
+      "name": "Instagram - Publish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://eoanxnehfeezohhnkmqj.supabase.co/rest/v1/post_logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvYW54bmVoZmVlem9oaG5rbXFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjcwNTk3OSwiZXhwIjoyMTAyMjgxOTc5fQ.5Sg7sXgzRudor9eidrj6lM1JQia9xrLeYSz76TgSZwY"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvYW54bmVoZmVlem9oaG5rbXFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjcwNTk3OSwiZXhwIjoyMTAyMjgxOTc5fQ.5Sg7sXgzRudor9eidrj6lM1JQia9xrLeYSz76TgSZwY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"image_name\": \"={{ $('Prepare Image').first().json.fileName }}\",\n  \"image_url\": \"={{ $('Build Public Image URL').first().json.publicUrl }}\",\n  \"caption\": \"={{ $('AI - Generate Caption').first().json.caption }}\",\n  \"hashtags\": \"={{ $('AI - Generate Caption').first().json.hashtags.join(' ') }}\",\n  \"status\": \"published\",\n  \"file_id\": \"={{ $('Prepare Image').first().json.fileId }}\"\n}",
+        "options": {}
+      },
+      "id": "872d310c-ee2d-41e5-b3e9-2f7fed7eb903",
+      "name": "Supabase - Log Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2432,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{status:'skipped',reason:'File was already posted according to Supabase.'}}];"
+      },
+      "id": "ef08af27-7bd3-44a2-ad11-4685121d99d8",
+      "name": "Skip Duplicate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{status:'skipped',reason:'File is not an image.'}}];"
+      },
+      "id": "80c93dfc-472b-4890-b521-1b6a23c9ecab",
+      "name": "Skip Non-Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "'1oCpB77OdkBbbGKMQMyA0Po-qsAvi82vv' in parents and trashed = false "
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,mimeType,createdTime,webViewLink,size),nextPageToken"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -544,
+        80
+      ],
+      "id": "b53c78d2-f4d8-431c-8464-2cdf22ed4dca",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "nmZMlulPZnr3jZW3",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "files",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        80
+      ],
+      "id": "186b481c-736c-40ce-b7ea-b7d3badf7064",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Prepare Image').first();\n\nreturn [{\n  json: {\n    fileId: source.json.fileId,\n    fileName: source.json.fileName,\n    mimeType: source.json.mimeType,\n  },\n  binary: source.binary,\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        0
+      ],
+      "id": "9277aadf-0936-4725-9e31-95e297dbce80",
+      "name": "Restore Binary"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Images": {
+      "main": [
+        [
+          {
+            "node": "Google Drive - Download",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Non-Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive - Download": {
+      "main": [
+        [
+          {
+            "node": "Prepare Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Image": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Check Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Check Duplicate": {
+      "main": [
+        [
+          {
+            "node": "New Image?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Image?": {
+      "main": [
+        [
+          {
+            "node": "Restore Binary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Storage - Upload": {
+      "main": [
+        [
+          {
+            "node": "Build Public Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Public Image URL": {
+      "main": [
+        [
+          {
+            "node": "AI - Generate Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI - Generate Caption": {
+      "main": [
+        [
+          {
+            "node": "Validate AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate AI Output": {
+      "main": [
+        [
+          {
+            "node": "Instagram - Create Media Container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram - Create Media Container": {
+      "main": [
+        [
+          {
+            "node": "Wait for Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Processing": {
+      "main": [
+        [
+          {
+            "node": "Instagram - Publish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram - Publish": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Log Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Binary": {
+      "main": [
+        [
+          {
+            "node": "Supabase Storage - Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a383e066-d1cc-4a61-ac24-1bbd8388ef56",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e48aaa223218d91e613c8ed01969cb64323ca9ffd544aa996393fefbf62bffe"
+  },
+  "nodeGroups": [],
+  "id": "mjnxpuIPeTU9c7CN",
+  "tags": []
+}
