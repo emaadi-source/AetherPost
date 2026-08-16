@@ -4,6 +4,10 @@
 
 ---
 
+<img width="1600" height="784" alt="image" src="https://github.com/user-attachments/assets/426209cd-ef1d-4077-8a82-887edf8d42e9" />
+
+---
+
 ## Overview
 
 AetherPost is an end-to-end AI-powered Instagram content automation system built with n8n.
