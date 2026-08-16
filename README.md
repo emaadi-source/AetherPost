@@ -1,50 +1,67 @@
-# AI Instagram Content Automation
+# AetherPost
 
-> An AI-powered content pipeline that turns images stored in Google Drive into ready-to-publish Instagram posts automatically.
+> AI-powered social media automation that transforms Google Drive images into polished Instagram posts with intelligent content generation, duplicate protection, validation, automated publishing, and persistent post tracking.
+
+---
 
 ## Overview
 
-AI Instagram Content Automation is an end-to-end workflow designed to remove the repetitive work involved in publishing social media content.
+AetherPost is an end-to-end AI-powered Instagram content automation system built with n8n.
 
-The system continuously checks a Google Drive folder, identifies valid image files, prepares them for Instagram, generates engaging captions and hashtags with AI, validates the generated content, publishes the image through the Instagram Graph API, and records the published file in Supabase.
+The system monitors a designated Google Drive folder for new content, identifies supported image files, downloads and prepares them, checks Supabase to determine whether an image has already been published, generates captions and hashtags using AI, validates the generated content, creates an Instagram media container, publishes the post automatically, and records the result in Supabase.
 
-The result is a fully automated content publishing pipeline with built-in filtering and duplicate protection.
+The workflow is designed to be repeatable and safe. Existing images are not repeatedly published, while PDFs and other unsupported files are automatically ignored.
 
-## Workflow
+The entire publishing pipeline is orchestrated through n8n, with Google Drive acting as the content source, Supabase handling storage and persistent logging, AI handling content generation, and the Instagram Graph API handling publication.
+
+---
+
+## What AetherPost Does
+
+AetherPost automates the complete journey from a file being placed in Google Drive to a published Instagram post.
 
 ```text
 Google Drive
-     |
-     v
+      |
+      v
 Fetch Files
-     |
-     v
+      |
+      v
 Split Files
-     |
-     v
+      |
+      v
 Filter Images
-     |
-     +---- Non-Image ----> Skip
-     |
-     v
-Download Image
-     |
-     v
+      |
+      +--------------------+
+      |                    |
+   Image                 Non-Image
+      |                    |
+      v                    v
+Download              Skip Non-Image
+      |
+      v
 Prepare Image
-     |
-     v
+      |
+      v
 Check Duplicate
-     |
-     +---- Already Posted ----> Skip
-     |
-     v
-Generate & Validate AI Content
-     |
-     v
-Create Instagram Media Container
-     |
-     v
+      |
+      +--------------------+
+      |                    |
+   New Image            Duplicate
+      |                    |
+      v                    v
+AI Content              Skip Duplicate
+Generation
+      |
+      v
+Validate AI Output
+      |
+      v
+Create Instagram
+Media Container
+      |
+      v
 Publish to Instagram
-     |
-     v
+      |
+      v
 Log Post in Supabase
