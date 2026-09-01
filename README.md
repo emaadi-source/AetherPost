@@ -1,6 +1,6 @@
 # AetherPost
 
-> AI powered social media automation that transforms Google Drive images into polished Instagram posts with intelligent content generation, duplicate protection, validation, automated publishing, and persistent post tracking.
+> AI powered social media marketing automation that transforms Google Drive images into polished Instagram posts with intelligent content generation, duplicate protection, validation, automated publishing, and persistent post tracking.
 
 ---
 
