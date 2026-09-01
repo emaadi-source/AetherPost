@@ -1,6 +1,6 @@
 # AetherPost
 
-> AI-powered social media automation that transforms Google Drive images into polished Instagram posts with intelligent content generation, duplicate protection, validation, automated publishing, and persistent post tracking.
+> AI powered social media automation that transforms Google Drive images into polished Instagram posts with intelligent content generation, duplicate protection, validation, automated publishing, and persistent post tracking.
 
 ---
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-AetherPost is an end to end AI-powered Instagram content automation system built with n8n.
+AetherPost is an end to end AI powered Instagram content automation system built with n8n.
 
 The system monitors a designated Google Drive folder for new content, identifies supported image files, downloads and prepares them, checks Supabase to determine whether an image has already been published, generates captions and hashtags using AI, validates the generated content, creates an Instagram media container, publishes the post automatically, and records the result in Supabase.
 
